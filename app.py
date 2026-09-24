@@ -5,11 +5,9 @@ import numpy as np
 import io
 
 
-
-
-# ---------------------------------------------------
+# ============================================================
 # PAGE CONFIGURATION
-# ---------------------------------------------------
+# ============================================================
 
 st.set_page_config(
     page_title="Smart Image Processing Studio",
@@ -18,9 +16,9 @@ st.set_page_config(
 )
 
 
-# ---------------------------------------------------
+# ============================================================
 # TITLE
-# ---------------------------------------------------
+# ============================================================
 
 st.title("🖼️ Smart Image Processing Studio")
 
@@ -30,11 +28,11 @@ st.write(
 )
 
 
-# ---------------------------------------------------
+# ============================================================
 # SIDEBAR
-# ---------------------------------------------------
+# ============================================================
 
-st.sidebar.header("Image Processing")
+st.sidebar.header("⚙️ Image Processing")
 
 operation = st.sidebar.selectbox(
     "Select Operation",
@@ -53,9 +51,9 @@ operation = st.sidebar.selectbox(
 )
 
 
-# ---------------------------------------------------
+# ============================================================
 # IMAGE UPLOAD
-# ---------------------------------------------------
+# ============================================================
 
 uploaded_file = st.file_uploader(
     "Upload an image",
@@ -63,58 +61,55 @@ uploaded_file = st.file_uploader(
 )
 
 
-# ---------------------------------------------------
-# PROCESS IMAGE
-# ---------------------------------------------------
+# ============================================================
+# MAIN APPLICATION
+# ============================================================
 
 if uploaded_file is not None:
 
-    # Open image using Pillow
-    original_image = Image.open(uploaded_file).convert("RGB")
+    # --------------------------------------------------------
+    # LOAD IMAGE
+    # --------------------------------------------------------
 
-    st.subheader("Original Image")
+    original_image = Image.open(
+        uploaded_file
+    ).convert("RGB")
 
-    st.image(
-        original_image,
-        caption="Uploaded Image",
-        use_container_width=True
-    )
-
-
-    # ------------------------------------------------
-    # PROCESSING
-    # ------------------------------------------------
-
+    # Create a copy for processing
     processed_image = original_image.copy()
 
 
-    # ================================================
+    # ========================================================
     # 1. ORIGINAL
-    # ================================================
+    # ========================================================
 
     if operation == "Original":
 
-        processed_image = original_image
+        processed_image = original_image.copy()
 
 
-    # ================================================
+    # ========================================================
     # 2. RESIZE
-    # ================================================
+    # ========================================================
 
     elif operation == "Resize":
 
-        width = st.sidebar.slider(
+        st.sidebar.subheader("Resize Settings")
+
+        width = st.sidebar.number_input(
             "Width",
-            100,
-            1500,
-            original_image.width
+            min_value=50,
+            max_value=3000,
+            value=original_image.width,
+            step=10
         )
 
-        height = st.sidebar.slider(
+        height = st.sidebar.number_input(
             "Height",
-            100,
-            1500,
-            original_image.height
+            min_value=50,
+            max_value=3000,
+            value=original_image.height,
+            step=10
         )
 
         processed_image = original_image.resize(
@@ -122,27 +117,31 @@ if uploaded_file is not None:
         )
 
 
-    # ================================================
+    # ========================================================
     # 3. BLUR
-    # ================================================
+    # ========================================================
 
     elif operation == "Blur":
 
+        st.sidebar.subheader("Blur Settings")
+
         blur_amount = st.sidebar.slider(
             "Blur Amount",
-            1,
-            20,
-            5
+            min_value=1,
+            max_value=20,
+            value=5
         )
 
         processed_image = original_image.filter(
-            ImageFilter.GaussianBlur(blur_amount)
+            ImageFilter.GaussianBlur(
+                blur_amount
+            )
         )
 
 
-    # ================================================
+    # ========================================================
     # 4. SHARPEN
-    # ================================================
+    # ========================================================
 
     elif operation == "Sharpen":
 
@@ -151,18 +150,20 @@ if uploaded_file is not None:
         )
 
 
-    # ================================================
+    # ========================================================
     # 5. BRIGHTNESS
-    # ================================================
+    # ========================================================
 
     elif operation == "Brightness":
 
+        st.sidebar.subheader("Brightness Settings")
+
         brightness = st.sidebar.slider(
             "Brightness",
-            0.1,
-            3.0,
-            1.0,
-            0.1
+            min_value=0.1,
+            max_value=3.0,
+            value=1.0,
+            step=0.1
         )
 
         enhancer = ImageEnhance.Brightness(
@@ -174,18 +175,20 @@ if uploaded_file is not None:
         )
 
 
-    # ================================================
+    # ========================================================
     # 6. CONTRAST
-    # ================================================
+    # ========================================================
 
     elif operation == "Contrast":
 
+        st.sidebar.subheader("Contrast Settings")
+
         contrast = st.sidebar.slider(
             "Contrast",
-            0.1,
-            3.0,
-            1.0,
-            0.1
+            min_value=0.1,
+            max_value=3.0,
+            value=1.0,
+            step=0.1
         )
 
         enhancer = ImageEnhance.Contrast(
@@ -197,50 +200,65 @@ if uploaded_file is not None:
         )
 
 
-    # ================================================
+    # ========================================================
     # 7. ADD TEXT
-    # ================================================
+    # ========================================================
 
     elif operation == "Add Text":
 
+        st.sidebar.subheader("Text Settings")
+
         text = st.sidebar.text_input(
             "Enter Text",
-            "Smart Image Studio"
+            value="Smart Image Studio"
         )
 
-        x = st.sidebar.slider(
+        x_position = st.sidebar.number_input(
             "X Position",
-            0,
-            max(0, original_image.width - 1),
-            20
+            min_value=0,
+            max_value=max(
+                0,
+                original_image.width - 1
+            ),
+            value=20
         )
 
-        y = st.sidebar.slider(
+        y_position = st.sidebar.number_input(
             "Y Position",
-            0,
-            max(0, original_image.height - 1),
-            20
+            min_value=0,
+            max_value=max(
+                0,
+                original_image.height - 1
+            ),
+            value=20
         )
 
         processed_image = original_image.copy()
 
-        draw = ImageDraw.Draw(processed_image)
+        draw = ImageDraw.Draw(
+            processed_image
+        )
 
         draw.text(
-            (x, y),
+            (
+                x_position,
+                y_position
+            ),
             text,
             fill="red"
         )
 
 
-    # ================================================
+    # ========================================================
     # 8. GRAYSCALE - OPENCV
-    # ================================================
+    # ========================================================
 
     elif operation == "Grayscale":
 
-        # Pillow → NumPy
-        image_array = np.array(original_image)
+        # Pillow image → NumPy array
+        image_array = np.array(
+            original_image
+        )
 
         # RGB → Grayscale
         gray = cv2.cvtColor(
@@ -254,59 +272,73 @@ if uploaded_file is not None:
             cv2.COLOR_GRAY2RGB
         )
 
+        # NumPy → Pillow
         processed_image = Image.fromarray(
             gray_rgb
         )
 
 
-    # ================================================
+    # ========================================================
     # 9. EDGE DETECTION - OPENCV
-    # ================================================
+    # ========================================================
 
     elif operation == "Edge Detection":
 
-        image_array = np.array(original_image)
+        # Convert Pillow image to NumPy
+        image_array = np.array(
+            original_image
+        )
 
+        # Convert RGB to grayscale
         gray = cv2.cvtColor(
             image_array,
             cv2.COLOR_RGB2GRAY
         )
 
+        # Detect edges
         edges = cv2.Canny(
             gray,
             100,
             200
         )
 
+        # Convert back to Pillow
         processed_image = Image.fromarray(
             edges
         )
 
 
-    # ================================================
+    # ========================================================
     # 10. FACE DETECTION - OPENCV
-    # ================================================
+    # ========================================================
 
     elif operation == "Face Detection":
 
-        image_array = np.array(original_image)
+        # Convert Pillow → NumPy
+        image_array = np.array(
+            original_image
+        )
 
-        # RGB → BGR
+        # Convert RGB → BGR
         image_bgr = cv2.cvtColor(
             image_array,
             cv2.COLOR_RGB2BGR
         )
 
-        # Convert to grayscale
+        # Convert image to grayscale
         gray = cv2.cvtColor(
             image_bgr,
             cv2.COLOR_BGR2GRAY
         )
 
-        # Load Haar Cascade
+        # Haar Cascade classifier
+        cascade_path = (
+            cv2.data.haarcascades
+            + "haarcascade_frontalface_default.xml"
+        )
+
         face_cascade = cv2.CascadeClassifier(
-            cv2.data.haarcascades +
-            "haarcascade_frontalface_default.xml"
+            cascade_path
         )
 
         # Detect faces
@@ -317,7 +349,7 @@ if uploaded_file is not None:
             minSize=(30, 30)
         )
 
-        # Draw rectangle around faces
+        # Draw rectangle around every detected face
         for (x, y, w, h) in faces:
 
             cv2.rectangle(
@@ -338,49 +370,65 @@ if uploaded_file is not None:
                 2
             )
 
-        # BGR → RGB
+        # Convert BGR → RGB
         result_rgb = cv2.cvtColor(
             image_bgr,
             cv2.COLOR_BGR2RGB
         )
 
+        # NumPy → Pillow
         processed_image = Image.fromarray(
             result_rgb
         )
 
-        st.info(
-            f"Number of faces detected: {len(faces)}"
+        # Display face count
+        st.success(
+            f"👤 Faces detected: {len(faces)}"
         )
 
 
-    # ------------------------------------------------
-    # DISPLAY RESULT
-    # ------------------------------------------------
+    # ========================================================
+    # PROCESSED IMAGE SECTION
+    # ========================================================
 
-    st.subheader("Processed Image")
+    st.subheader("🖼️ Processed Image")
 
     col1, col2 = st.columns(2)
 
+
+    # --------------------------------------------------------
+    # ORIGINAL IMAGE
+    # --------------------------------------------------------
+
     with col1:
+
+        st.markdown("### Original Image")
 
         st.image(
             original_image,
-            caption="Original",
             use_container_width=True
         )
+
+
+    # --------------------------------------------------------
+    # PROCESSED IMAGE
+    # --------------------------------------------------------
 
     with col2:
 
+        st.markdown("### Processed Result")
+
         st.image(
             processed_image,
-            caption="Processed",
             use_container_width=True
         )
 
 
-    # ------------------------------------------------
-    # DOWNLOAD RESULT
-    # ------------------------------------------------
+    # ========================================================
+    # DOWNLOAD
+    # ========================================================
+
+    st.subheader("⬇️ Download")
 
     image_bytes = io.BytesIO()
 
@@ -396,8 +444,14 @@ if uploaded_file is not None:
         mime="image/png"
     )
 
+
+# ============================================================
+# NO IMAGE MESSAGE
+# ============================================================
+
 else:
 
     st.info(
-        "👆 Please upload an image to start."
+        "👆 Please upload an image to start "
+        "using Smart Image Processing Studio."
     )
